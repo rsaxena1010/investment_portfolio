@@ -1,0 +1,70 @@
+{
+  "fxRates": {
+    "USDINR": 84.50,
+    "SGDINR": 63.20
+  },
+  "indiaHoldings": {
+    "mutualFunds": [
+      { "name": "CAMS Portfolio (All Funds)", "invested": 10955684, "current": 10408800 }
+    ],
+    "aif": [
+      { "name": "Alteria Capital AIF", "invested": 5000000, "current": 5750000 }
+    ],
+    "ppf": { "name": "PPF Account", "balance": 1250000 },
+    "ssy": { "name": "SSY (Sukanya Samridhi)", "balance": 450000 },
+    "cash": [
+      { "name": "HDFC Savings Account", "balance": 850000 },
+      { "name": "SBI Fixed Deposit", "balance": 2000000 }
+    ]
+  },
+  "singaporeHoldings": {
+    "usEquity": [
+      { "symbol": "AAPL", "name": "Apple Inc.", "shares": 50, "avgCost": 150.00, "currentPrice": 195.89, "currency": "USD" },
+      { "symbol": "MSFT", "name": "Microsoft Corp.", "shares": 30, "avgCost": 280.00, "currentPrice": 415.32, "currency": "USD" },
+      { "symbol": "GOOGL", "name": "Alphabet Inc.", "shares": 20, "avgCost": 120.00, "currentPrice": 175.15, "currency": "USD" },
+      { "symbol": "AMZN", "name": "Amazon.com Inc.", "shares": 25, "avgCost": 140.00, "currentPrice": 195.40, "currency": "USD" },
+      { "symbol": "NVDA", "name": "NVIDIA Corp.", "shares": 40, "avgCost": 450.00, "currentPrice": 875.60, "currency": "USD" }
+    ],
+    "crypto": [
+      { "symbol": "BTC-USD", "name": "Bitcoin", "units": 0.5, "avgCost": 42000, "currentPrice": 68000, "currency": "USD" },
+      { "symbol": "ETH-USD", "name": "Ethereum", "units": 5, "avgCost": 2200, "currentPrice": 3800, "currency": "USD" }
+    ]
+  },
+  "realEstate": [
+    {
+      "name": "Apartment — Bangalore",
+      "city": "Bangalore",
+      "purchasePrice": 8500000,
+      "currentValue": 12000000,
+      "monthlyRent": 35000,
+      "currency": "INR"
+    },
+    {
+      "name": "Plot — Hyderabad",
+      "city": "Hyderabad",
+      "purchasePrice": 3500000,
+      "currentValue": 5500000,
+      "monthlyRent": 0,
+      "currency": "INR"
+    }
+  ],
+  "cashflows": {
+    "inflows": [
+      { "name": "Salary (India)", "annual": 3600000 },
+      { "name": "Rental Income", "annual": 420000 },
+      { "name": "Dividends (USD)", "annual": 125000 }
+    ],
+    "outflows": [
+      { "name": "Living Expenses", "annual": 1800000 },
+      { "name": "EMI — Home Loan", "annual": 480000 },
+      { "name": "Insurance Premiums", "annual": 120000 },
+      { "name": "SIP Investments", "annual": 600000 }
+    ]
+  },
+  "watchlist": [
+    { "name": "Gold ETF", "currentValue": 6800, "trigger": 7200, "note": "Buy on breakout above ₹7,200" },
+    { "name": "Nifty 50 Index", "currentValue": 22500, "trigger": 20000, "note": "Rebalance if drops below 20,000" },
+    { "name": "USD/INR", "currentValue": 84.5, "trigger": 86.0, "note": "Remit if INR weakens past 86" },
+    { "name": "BTC", "currentValue": 68000, "trigger": 80000, "note": "Take partial profit at $80,000" }
+  ]
+}
