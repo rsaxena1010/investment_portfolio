@@ -19,15 +19,21 @@
   },
   "singaporeHoldings": {
     "usEquity": [
-      { "symbol": "AAPL", "name": "Apple Inc.", "shares": 50, "avgCost": 150.00, "currentPrice": 195.89, "currency": "USD" },
-      { "symbol": "MSFT", "name": "Microsoft Corp.", "shares": 30, "avgCost": 280.00, "currentPrice": 415.32, "currency": "USD" },
-      { "symbol": "GOOGL", "name": "Alphabet Inc.", "shares": 20, "avgCost": 120.00, "currentPrice": 175.15, "currency": "USD" },
-      { "symbol": "AMZN", "name": "Amazon.com Inc.", "shares": 25, "avgCost": 140.00, "currentPrice": 195.40, "currency": "USD" },
-      { "symbol": "NVDA", "name": "NVIDIA Corp.", "shares": 40, "avgCost": 450.00, "currentPrice": 875.60, "currency": "USD" }
+      { "symbol": "CCJ", "name": "Cameco Corporation", "shares": 35, "avgCost": 119.33, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "ISRG", "name": "Intuitive Surgical, Inc.", "shares": 36, "avgCost": 414.36, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "MSFT", "name": "Microsoft Corporation", "shares": 790, "avgCost": 435.06, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "GOOGL", "name": "Alphabet Inc.", "shares": 97, "avgCost": 370.76, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "NVDA", "name": "NVIDIA Corporation", "shares": 200, "avgCost": 189.12, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "AMZN", "name": "Amazon.com, Inc.", "shares": 200, "avgCost": 239.80, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "SNDK", "name": "Sandisk Corporation", "shares": 66, "avgCost": 1500.00, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "SPCE", "name": "Virgin Galactic Holdings, Inc.", "shares": 175, "avgCost": 3.24, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "META", "name": "Meta Platforms, Inc.", "shares": 280, "avgCost": 596.57, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "VUAA.L", "name": "Vanguard S&P 500 UCITS ETF USD Accumulation", "shares": 200, "avgCost": 144.86, "currentPrice": 0, "currency": "USD" }
     ],
     "crypto": [
-      { "symbol": "BTC-USD", "name": "Bitcoin", "units": 0.5, "avgCost": 42000, "currentPrice": 68000, "currency": "USD" },
-      { "symbol": "ETH-USD", "name": "Ethereum", "units": 5, "avgCost": 2200, "currentPrice": 3800, "currency": "USD" }
+      { "symbol": "BTC-USD", "name": "Bitcoin", "units": 1, "avgCost": 111200.00, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "ETH-USD", "name": "Ethereum", "units": 3, "avgCost": 3308.00, "currentPrice": 0, "currency": "USD" },
+      { "symbol": "XRP-USD", "name": "XRP", "units": 3000, "avgCost": 3.0629, "currentPrice": 0, "currency": "USD" }
     ]
   },
   "realEstate": [
