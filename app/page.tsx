@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Eye, EyeOff, RefreshCw, LayoutDashboard, List, Settings, TrendingUp } from "lucide-react";
+import { Eye, EyeOff, RefreshCw, LayoutDashboard, List, Settings, TrendingUp, Download } from "lucide-react";
 import Dashboard from "./Dashboard";
 import TransactionsTab from "./TransactionsTab";
 import AnalyticsTab from "./AnalyticsTab";
@@ -103,6 +103,30 @@ export default function PortfolioPage() {
     }
   }, [data, refreshing]);
 
+  const handleDataChange = useCallback((patch: Partial<PortfolioData>) => {
+    setData((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...patch };
+      localStorage.setItem(LS_DATA, JSON.stringify(updated));
+      localStorage.setItem(LS_SRC, "excel");
+      return updated;
+    });
+    setDataSource("excel");
+  }, []);
+
+  const handleExport = useCallback(async () => {
+    if (!data) return;
+    const { exportPortfolioToExcel } = await import("./excelParser");
+    const buffer = exportPortfolioToExcel(data, transactions, livePrices);
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `portfolio-export-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [data, transactions, livePrices]);
+
   const handleExcelUpload = useCallback((d: PortfolioData, txn: Transaction[]) => {
     setData(d);
     setTransactions(txn);
@@ -179,6 +203,13 @@ export default function PortfolioPage() {
             </span>
           )}
           <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export Excel
+          </button>
+          <button
             onClick={refreshPrices}
             disabled={refreshing}
             className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
@@ -231,6 +262,7 @@ export default function PortfolioPage() {
           liveFX={market?.fx ?? null}
           inflation={market?.inflation ?? null}
           hide={privacyMode}
+          onDataChange={handleDataChange}
         />
       )}
 

@@ -1,9 +1,10 @@
 "use client";
 
-import { TrendingUp, TrendingDown, AlertCircle, IndianRupee, DollarSign, Wallet, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertCircle, IndianRupee, DollarSign, Wallet, ChevronUp, ChevronDown, ChevronsUpDown, Pencil, Check, X as XIcon } from "lucide-react";
 import type { PortfolioData } from "./types";
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import IndiaDataEditor from "./components/IndiaDataEditor";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -126,6 +127,7 @@ interface Props {
   liveFX: { USDINR: number | null; SGDINR: number | null } | null;
   inflation: { indiaYoY: number | null; usYoY: number | null } | null;
   hide: boolean;
+  onDataChange: (patch: Partial<PortfolioData>) => void;
 }
 
 type SortCol = "symbol" | "qty" | "avgCost" | "price" | "valueUSD" | "gainLossUSD" | "gainLossPct";
@@ -138,19 +140,41 @@ function SortIcon({ col, active, dir }: { col: string; active: boolean; dir: Sor
     : <ChevronDown className="w-3 h-3 inline ml-0.5 text-indigo-600" />;
 }
 
-export default function Dashboard({ data, livePrices, liveFX, inflation, hide }: Props) {
+export default function Dashboard({ data, livePrices, liveFX, inflation, hide, onDataChange }: Props) {
   const [showEditor, setShowEditor] = useState(false);
+  const [showIndiaEditor, setShowIndiaEditor] = useState(false);
   const [sortCol, setSortCol] = useState<SortCol>("valueUSD");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  // FX override: user-typed rate takes priority over live Yahoo rate
+  const [fxOverride, setFxOverride] = useState<{ USDINR: number; SGDINR: number } | null>(null);
+  const [fxEditMode, setFxEditMode] = useState(false);
+  const [fxDraft, setFxDraft] = useState({ USDINR: 0, SGDINR: 0 });
+
   const HoldingsEditor = dynamic(() => import("./components/HoldingsEditor"), { ssr: false });
 
   function handleSort(col: SortCol) {
     if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else { setSortCol(col); setSortDir("desc"); }
   }
+
+  function enterFxEdit() {
+    setFxDraft({
+      USDINR: fxOverride?.USDINR ?? liveFX?.USDINR ?? data.fxRates.USDINR,
+      SGDINR: fxOverride?.SGDINR ?? liveFX?.SGDINR ?? data.fxRates.SGDINR,
+    });
+    setFxEditMode(true);
+  }
+
+  function saveFx() {
+    setFxOverride(fxDraft);
+    onDataChange({ fxRates: fxDraft });
+    setFxEditMode(false);
+  }
+
   const { indiaHoldings, singaporeHoldings, realEstate, cashflows, watchlist } = data;
 
-  const USDINR = liveFX?.USDINR ?? data.fxRates.USDINR;
+  const USDINR = fxOverride?.USDINR ?? liveFX?.USDINR ?? data.fxRates.USDINR;
 
   // India totals
   const mfCurrent = indiaHoldings.mutualFunds.reduce((s, f) => s + f.current, 0);
@@ -212,19 +236,57 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide }:
   return (
     <div className="space-y-6">
       {/* Market data bar */}
-      {(liveFX || inflation) && (
-        <div className="flex flex-wrap items-center gap-4 px-4 py-2.5 bg-gray-900 rounded-xl text-xs text-gray-300">
-          {liveFX?.USDINR && <span>USD/INR <strong className="text-white">{liveFX.USDINR.toFixed(2)}</strong></span>}
-          {liveFX?.SGDINR && <span>SGD/INR <strong className="text-white">{liveFX.SGDINR.toFixed(2)}</strong></span>}
-          {inflation?.indiaYoY != null && (
-            <span>India CPI <strong className={inflation.indiaYoY > 6 ? "text-red-400" : "text-emerald-400"}>{inflation.indiaYoY.toFixed(1)}%</strong></span>
-          )}
-          {inflation?.usYoY != null && (
-            <span>US CPI <strong className={inflation.usYoY > 3 ? "text-red-400" : "text-emerald-400"}>{inflation.usYoY.toFixed(1)}%</strong></span>
-          )}
-          <span className="ml-auto text-gray-500">Live market data</span>
-        </div>
-      )}
+      <div className="flex flex-wrap items-center gap-4 px-4 py-2.5 bg-gray-900 rounded-xl text-xs text-gray-300">
+        {fxEditMode ? (
+          <div className="flex items-center gap-3">
+            <span className="text-gray-400">USD/INR</span>
+            <input
+              type="number"
+              className="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-indigo-400"
+              value={fxDraft.USDINR || ""}
+              onChange={(e) => setFxDraft((d) => ({ ...d, USDINR: parseFloat(e.target.value) || 0 }))}
+            />
+            <span className="text-gray-400">SGD/INR</span>
+            <input
+              type="number"
+              className="w-20 bg-gray-800 border border-gray-600 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-indigo-400"
+              value={fxDraft.SGDINR || ""}
+              onChange={(e) => setFxDraft((d) => ({ ...d, SGDINR: parseFloat(e.target.value) || 0 }))}
+            />
+            <button onClick={saveFx} className="flex items-center gap-1 px-2 py-1 bg-emerald-600 text-white rounded text-xs hover:bg-emerald-700">
+              <Check className="w-3 h-3" /> Save
+            </button>
+            <button onClick={() => setFxEditMode(false)} className="text-gray-400 hover:text-gray-200">
+              <XIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <span>
+              USD/INR{" "}
+              <strong className={`text-white ${fxOverride ? "text-yellow-300" : ""}`}>
+                {USDINR.toFixed(2)}
+              </strong>
+              {fxOverride && <span className="ml-1 text-yellow-500 text-[10px]">manual</span>}
+              {liveFX?.SGDINR && (
+                <span className="ml-3">
+                  SGD/INR <strong className="text-white">{(fxOverride?.SGDINR ?? liveFX.SGDINR).toFixed(2)}</strong>
+                </span>
+              )}
+            </span>
+            <button onClick={enterFxEdit} className="flex items-center gap-1 text-gray-400 hover:text-white transition-colors">
+              <Pencil className="w-3 h-3" /> Edit rates
+            </button>
+          </>
+        )}
+        {inflation?.indiaYoY != null && (
+          <span>India CPI <strong className={inflation.indiaYoY > 6 ? "text-red-400" : "text-emerald-400"}>{inflation.indiaYoY.toFixed(1)}%</strong></span>
+        )}
+        {inflation?.usYoY != null && (
+          <span>US CPI <strong className={inflation.usYoY > 3 ? "text-red-400" : "text-emerald-400"}>{inflation.usYoY.toFixed(1)}%</strong></span>
+        )}
+        <span className="ml-auto text-gray-500">Live · auto-refreshes every 5 min</span>
+      </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -455,11 +517,26 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide }:
         </table>
       </div>
 
+      {/* India Data Editor */}
+      {showIndiaEditor && (
+        <IndiaDataEditor
+          data={data}
+          onChange={(patch) => { onDataChange(patch); setShowIndiaEditor(false); }}
+          onClose={() => setShowIndiaEditor(false)}
+        />
+      )}
+
       {/* India + RE + Cashflows */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-700">India Holdings</h2>
+            <button
+              onClick={() => setShowIndiaEditor((v) => !v)}
+              className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md"
+            >
+              {showIndiaEditor ? "Close Editor" : "Edit India Data"}
+            </button>
           </div>
           <table className="w-full text-sm">
             <thead>

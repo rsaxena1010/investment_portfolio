@@ -196,6 +196,116 @@ export function generateTemplate(): ArrayBuffer {
   return XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
 }
 
+// ── Parse a mutual-fund-only Excel upload ─────────────────────────────────────
+// Accepts flexible column names: Fund Name / Scheme Name / Name
+//                                Invested / Amount Invested / Cost / Purchase Value
+//                                Current Value / Market Value / Value / Balance
+export function parseMFExcel(buffer: ArrayBuffer): Array<{ name: string; invested: number; current: number }> {
+  const wb = XLSX.read(buffer, { type: "array", cellDates: true, raw: false });
+  const sheetName =
+    ["MutualFunds", "Mutual Funds", "MF", "Funds", "Portfolio", "Sheet1", "Sheet2"].find(
+      (n) => wb.Sheets[n]
+    ) ?? wb.SheetNames[0];
+  if (!sheetName) return [];
+
+  const rows = XLSX.utils.sheet_to_json<Row>(wb.Sheets[sheetName], { defval: null, raw: false });
+  return rows
+    .map((r) => ({
+      name: str(r["Fund Name"] ?? r["Scheme Name"] ?? r["Scheme"] ?? r["Name"] ?? r["Fund"] ?? ""),
+      invested: num(
+        r["Invested"] ?? r["Amount Invested"] ?? r["Cost"] ?? r["Purchase Value"] ??
+        r["Net Invested"] ?? r["Invested Amount"] ?? 0
+      ),
+      current: num(
+        r["Current Value"] ?? r["Value"] ?? r["Market Value"] ?? r["Balance"] ??
+        r["Present Value"] ?? r["Current"] ?? 0
+      ),
+    }))
+    .filter((f) => f.name);
+}
+
+// ── Export full portfolio as a multi-sheet Excel ───────────────────────────────
+export function exportPortfolioToExcel(
+  data: PortfolioData,
+  transactions: Transaction[],
+  livePrices: Record<string, number> = {}
+): ArrayBuffer {
+  const wb = XLSX.utils.book_new();
+
+  const addSheet = (name: string, rows: Row[]) => {
+    if (rows.length === 0) return;
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), name);
+  };
+
+  // MutualFunds — dedicated tab for easy re-upload
+  addSheet(
+    "MutualFunds",
+    data.indiaHoldings.mutualFunds.map((f) => ({
+      "Fund Name": f.name,
+      Invested: f.invested,
+      "Current Value": f.current,
+      "Gain/Loss": f.current - f.invested,
+      "Return %": f.invested > 0 ? +((f.current - f.invested) / f.invested * 100).toFixed(2) : 0,
+    }))
+  );
+
+  // Holdings_India
+  addSheet("Holdings_India", [
+    ...data.indiaHoldings.mutualFunds.map((f) => ({ Name: f.name, Category: "MF", Invested: f.invested, Balance: f.current })),
+    ...data.indiaHoldings.aif.map((f) => ({ Name: f.name, Category: "AIF", Invested: f.invested, Balance: f.current })),
+    { Name: data.indiaHoldings.ppf.name, Category: "PPF", Invested: "", Balance: data.indiaHoldings.ppf.balance },
+    { Name: data.indiaHoldings.ssy.name, Category: "SSY", Invested: "", Balance: data.indiaHoldings.ssy.balance },
+    ...data.indiaHoldings.cash.map((c) => ({ Name: c.name, Category: "Cash", Invested: "", Balance: c.balance })),
+  ]);
+
+  // Holdings_SG
+  addSheet("Holdings_SG", [
+    ...data.singaporeHoldings.usEquity.map((e) => ({
+      Symbol: e.symbol, Name: e.name, Type: "equity",
+      Quantity: e.shares, AvgCost: e.avgCost,
+      CurrentPrice: livePrices[e.symbol] ?? e.currentPrice,
+      Currency: e.currency,
+    })),
+    ...data.singaporeHoldings.crypto.map((c) => ({
+      Symbol: c.symbol, Name: c.name, Type: "crypto",
+      Quantity: c.units, AvgCost: c.avgCost,
+      CurrentPrice: livePrices[c.symbol] ?? c.currentPrice,
+      Currency: c.currency,
+    })),
+  ]);
+
+  // RealEstate
+  addSheet("RealEstate", data.realEstate.map((r) => ({
+    Name: r.name, City: r.city,
+    PurchasePrice: r.purchasePrice, CurrentValue: r.currentValue,
+    MonthlyRent: r.monthlyRent, AnnualRent: r.monthlyRent * 12,
+    Currency: r.currency,
+  })));
+
+  // Cashflows
+  addSheet("Cashflows", [
+    ...data.cashflows.inflows.map((f) => ({ Name: f.name, FlowType: "Inflow", Annual: f.annual, Monthly: Math.round(f.annual / 12) })),
+    ...data.cashflows.outflows.map((f) => ({ Name: f.name, FlowType: "Outflow", Annual: f.annual, Monthly: Math.round(f.annual / 12) })),
+  ]);
+
+  // FxRates
+  addSheet("FxRates", [
+    { Pair: "USDINR", Rate: data.fxRates.USDINR },
+    { Pair: "SGDINR", Rate: data.fxRates.SGDINR },
+  ]);
+
+  // Transactions
+  if (transactions.length > 0) {
+    addSheet("Transactions", transactions.map((t) => ({
+      Date: t.date, Symbol: t.symbol, Name: t.name, Type: t.type,
+      Quantity: t.quantity, Price: t.price, Fees: t.fees,
+      Currency: t.currency, AssetClass: t.assetClass,
+    })));
+  }
+
+  return XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+}
+
 export interface RealizedTrade {
   symbol: string;
   buyDate: string;
