@@ -59,14 +59,19 @@ export default function PortfolioPage() {
       .then(setData);
   }, []);
 
-  // Auto-fetch FX rates + inflation on mount
+  // Auto-fetch FX rates + inflation on mount, then refresh every 5 min
   useEffect(() => {
+    const fetchMarket = () =>
+      fetch("/api/market")
+        .then((r) => r.json())
+        .then((d: MarketData) => setMarket(d))
+        .catch(() => {});
+
     setLoadingMarket(true);
-    fetch("/api/market")
-      .then((r) => r.json())
-      .then((d: MarketData) => setMarket(d))
-      .catch(() => {})
-      .finally(() => setLoadingMarket(false));
+    fetchMarket().finally(() => setLoadingMarket(false));
+
+    const id = setInterval(fetchMarket, 5 * 60 * 1000);
+    return () => clearInterval(id);
   }, []);
 
   // Tick so "X mins ago" text stays fresh

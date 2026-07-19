@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, TrendingDown, AlertCircle, IndianRupee, DollarSign, Wallet } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertCircle, IndianRupee, DollarSign, Wallet, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import type { PortfolioData } from "./types";
 import { useState } from "react";
 import dynamic from "next/dynamic";
@@ -128,9 +128,26 @@ interface Props {
   hide: boolean;
 }
 
+type SortCol = "symbol" | "qty" | "avgCost" | "price" | "valueUSD" | "gainLossUSD" | "gainLossPct";
+type SortDir = "asc" | "desc";
+
+function SortIcon({ col, active, dir }: { col: string; active: boolean; dir: SortDir }) {
+  if (!active) return <ChevronsUpDown className="w-3 h-3 inline ml-0.5 opacity-30" />;
+  return dir === "asc"
+    ? <ChevronUp className="w-3 h-3 inline ml-0.5 text-indigo-600" />
+    : <ChevronDown className="w-3 h-3 inline ml-0.5 text-indigo-600" />;
+}
+
 export default function Dashboard({ data, livePrices, liveFX, inflation, hide }: Props) {
   const [showEditor, setShowEditor] = useState(false);
+  const [sortCol, setSortCol] = useState<SortCol>("valueUSD");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const HoldingsEditor = dynamic(() => import("./components/HoldingsEditor"), { ssr: false });
+
+  function handleSort(col: SortCol) {
+    if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortCol(col); setSortDir("desc"); }
+  }
   const { indiaHoldings, singaporeHoldings, realEstate, cashflows, watchlist } = data;
 
   const USDINR = liveFX?.USDINR ?? data.fxRates.USDINR;
@@ -358,48 +375,81 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide }:
         )}
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-              <th className="px-5 py-3 text-left">Symbol</th>
-              <th className="px-5 py-3 text-left">Name</th>
-              <th className="px-5 py-3 text-right">Qty</th>
-              <th className="px-5 py-3 text-right">Avg Cost</th>
-              <th className="px-5 py-3 text-right">Live Price</th>
-              <th className="px-5 py-3 text-right">Value (USD)</th>
-              <th className="px-5 py-3 text-right">Value (INR)</th>
-              <th className="px-5 py-3 text-right">Gain/Loss</th>
+            <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide select-none">
+              {([
+                { col: "symbol" as SortCol, label: "Symbol", align: "left" },
+                { col: null, label: "Name", align: "left" },
+                { col: "qty" as SortCol, label: "Qty", align: "right" },
+                { col: "avgCost" as SortCol, label: "Avg Cost", align: "right" },
+                { col: "price" as SortCol, label: "Live Price", align: "right" },
+                { col: "valueUSD" as SortCol, label: "Value (USD)", align: "right" },
+                { col: "valueUSD" as SortCol, label: "Value (INR)", align: "right" },
+                { col: "gainLossUSD" as SortCol, label: "Gain/Loss $", align: "right" },
+                { col: "gainLossPct" as SortCol, label: "Gain/Loss %", align: "right" },
+              ] as { col: SortCol | null; label: string; align: string }[]).map(({ col, label, align }) => (
+                <th
+                  key={label}
+                  className={`px-5 py-3 text-${align} ${col ? "cursor-pointer hover:text-gray-800" : ""}`}
+                  onClick={col ? () => handleSort(col) : undefined}
+                >
+                  {label}
+                  {col && <SortIcon col={col} active={sortCol === col} dir={sortDir} />}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {[...equityPositions, ...cryptoPositions].map((pos) => {
-              const isPos = pos.gainLossUSD >= 0;
-              const qty = "shares" in pos ? pos.shares : pos.units;
-              return (
-                <tr key={pos.symbol} className="hover:bg-gray-50">
-                  <td className="px-5 py-3 font-mono font-semibold text-gray-900">{pos.symbol}</td>
-                  <td className="px-5 py-3 text-gray-600">{pos.name}</td>
-                  <td className="px-5 py-3 text-right text-gray-700">{qty}</td>
-                  <td className="px-5 py-3 text-right text-gray-700">{hide ? "——" : fmtUSD(pos.avgCost)}</td>
-                  <td className="px-5 py-3 text-right text-gray-700">
-                    {hide ? "——" : fmtUSD(pos.price)}
-                    {livePrices[pos.symbol] && <span className="ml-1 text-xs text-emerald-500">●</span>}
-                  </td>
-                  <td className="px-5 py-3 text-right font-medium text-gray-900">{hide ? "——" : fmtUSD(pos.valueUSD)}</td>
-                  <td className="px-5 py-3 text-right font-medium text-gray-900">{hide ? "——" : fmtINR(pos.valueUSD * USDINR)}</td>
-                  <td className="px-5 py-3 text-right">
-                    <span className={`font-medium ${isPos ? "text-emerald-600" : "text-red-500"}`}>
-                      {hide ? fmtPct(pos.gainLossPct) : `${fmtUSD(pos.gainLossUSD)} (${fmtPct(pos.gainLossPct)})`}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
+            {[...equityPositions, ...cryptoPositions]
+              .sort((a, b) => {
+                const aQty = "shares" in a ? a.shares : a.units;
+                const bQty = "shares" in b ? b.shares : b.units;
+                const vals: Record<SortCol, number | string> = {
+                  symbol: a.symbol, qty: aQty, avgCost: a.avgCost, price: a.price,
+                  valueUSD: a.valueUSD, gainLossUSD: a.gainLossUSD, gainLossPct: a.gainLossPct,
+                };
+                const valsB: Record<SortCol, number | string> = {
+                  symbol: b.symbol, qty: bQty, avgCost: b.avgCost, price: b.price,
+                  valueUSD: b.valueUSD, gainLossUSD: b.gainLossUSD, gainLossPct: b.gainLossPct,
+                };
+                const va = vals[sortCol]; const vb = valsB[sortCol];
+                const cmp = typeof va === "string" ? (va as string).localeCompare(vb as string) : (va as number) - (vb as number);
+                return sortDir === "asc" ? cmp : -cmp;
+              })
+              .map((pos) => {
+                const isPos = pos.gainLossUSD >= 0;
+                const qty = "shares" in pos ? pos.shares : pos.units;
+                return (
+                  <tr key={pos.symbol} className="hover:bg-gray-50">
+                    <td className="px-5 py-3 font-mono font-semibold text-gray-900">{pos.symbol}</td>
+                    <td className="px-5 py-3 text-gray-600">{pos.name}</td>
+                    <td className="px-5 py-3 text-right text-gray-700">{qty}</td>
+                    <td className="px-5 py-3 text-right text-gray-700">{hide ? "——" : fmtUSD(pos.avgCost)}</td>
+                    <td className="px-5 py-3 text-right text-gray-700">
+                      {hide ? "——" : fmtUSD(pos.price)}
+                      {livePrices[pos.symbol] && <span className="ml-1 text-xs text-emerald-500">●</span>}
+                    </td>
+                    <td className="px-5 py-3 text-right font-medium text-gray-900">{hide ? "——" : fmtUSD(pos.valueUSD)}</td>
+                    <td className="px-5 py-3 text-right font-medium text-gray-900">{hide ? "——" : fmtINR(pos.valueUSD * USDINR)}</td>
+                    <td className="px-5 py-3 text-right">
+                      <span className={`font-medium ${isPos ? "text-emerald-600" : "text-red-500"}`}>
+                        {hide ? "——" : fmtUSD(pos.gainLossUSD)}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <span className={`font-medium ${isPos ? "text-emerald-600" : "text-red-500"}`}>
+                        {fmtPct(pos.gainLossPct)}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
           <tfoot>
             <tr className="bg-gray-50 font-semibold text-sm border-t border-gray-200">
               <td className="px-5 py-3 text-gray-700" colSpan={5}>Total</td>
               <td className="px-5 py-3 text-right text-gray-900">{hide ? "——" : fmtUSD(sgTotalUSD)}</td>
               <td className="px-5 py-3 text-right text-gray-900">{hide ? `${sgPct.toFixed(1)}%` : fmtINR(sgTotalINR)}</td>
-              <td />
+              <td /><td />
             </tr>
           </tfoot>
         </table>
