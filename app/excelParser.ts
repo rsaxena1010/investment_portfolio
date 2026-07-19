@@ -58,6 +58,7 @@ export function parseExcel(buffer: ArrayBuffer): { data: PortfolioData; transact
       avgCost: num(r.AvgCost),
       currentPrice: num(r.CurrentPrice),
       currency: str(r.Currency) || "USD",
+      positionDate: str(r.PositionDate ?? r["Position Date"] ?? r.Date ?? "") || undefined,
     }));
   const crypto = sgRows
     .filter((r) => str(r.Type).toLowerCase().includes("crypto"))
@@ -68,6 +69,7 @@ export function parseExcel(buffer: ArrayBuffer): { data: PortfolioData; transact
       avgCost: num(r.AvgCost),
       currentPrice: num(r.CurrentPrice),
       currency: str(r.Currency) || "USD",
+      positionDate: str(r.PositionDate ?? r["Position Date"] ?? r.Date ?? "") || undefined,
     }));
 
   // ── RealEstate ──
@@ -186,9 +188,9 @@ export function generateTemplate(): ArrayBuffer {
   ]);
 
   addSheet("Holdings_SG", [
-    { Symbol: "AAPL", Name: "Apple Inc.", Type: "equity", Quantity: 50, AvgCost: 150, CurrentPrice: 195.89, Currency: "USD" },
-    { Symbol: "MSFT", Name: "Microsoft Corp.", Type: "equity", Quantity: 30, AvgCost: 280, CurrentPrice: 415.32, Currency: "USD" },
-    { Symbol: "BTC-USD", Name: "Bitcoin", Type: "crypto", Quantity: 0.5, AvgCost: 42000, CurrentPrice: 68000, Currency: "USD" },
+    { Symbol: "AAPL", Name: "Apple Inc.", Type: "equity", Quantity: 50, AvgCost: 150, CurrentPrice: 195.89, Currency: "USD", PositionDate: "2024-01-15" },
+    { Symbol: "MSFT", Name: "Microsoft Corp.", Type: "equity", Quantity: 30, AvgCost: 280, CurrentPrice: 415.32, Currency: "USD", PositionDate: "2023-06-10" },
+    { Symbol: "BTC-USD", Name: "Bitcoin", Type: "crypto", Quantity: 0.5, AvgCost: 42000, CurrentPrice: 68000, Currency: "USD", PositionDate: "2022-03-01" },
   ]);
 
   addSheet("RealEstate", [
@@ -290,12 +292,14 @@ export function exportPortfolioToExcel(
       Quantity: e.shares, AvgCost: e.avgCost,
       CurrentPrice: livePrices[e.symbol] ?? e.currentPrice,
       Currency: e.currency,
+      PositionDate: e.positionDate ?? "",
     })),
     ...data.singaporeHoldings.crypto.map((c) => ({
       Symbol: c.symbol, Name: c.name, Type: "crypto",
       Quantity: c.units, AvgCost: c.avgCost,
       CurrentPrice: livePrices[c.symbol] ?? c.currentPrice,
       Currency: c.currency,
+      PositionDate: c.positionDate ?? "",
     })),
   ]);
 

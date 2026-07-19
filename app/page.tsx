@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Eye, EyeOff, RefreshCw, LayoutDashboard, List, Settings, TrendingUp, Download } from "lucide-react";
 import Dashboard from "./Dashboard";
 import TransactionsTab from "./TransactionsTab";
@@ -36,6 +36,10 @@ export default function PortfolioPage() {
   const [refreshTick, setRefreshTick] = useState(0);
   const [historyData, setHistoryData] = useState<Record<string, PricePoint[]> | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const dataRef = useRef<PortfolioData | null>(null);
+
+  // Keep dataRef in sync so handleExcelUpload can access the current changeLog
+  useEffect(() => { dataRef.current = data; }, [data]);
 
   // Load portfolio data on mount — localStorage first, then JSON default
   useEffect(() => {
@@ -129,14 +133,15 @@ export default function PortfolioPage() {
 
   const handleExcelUpload = useCallback((d: PortfolioData, txn: Transaction[]) => {
     const now = new Date().toISOString();
-    const withLog: PortfolioData = {
-      ...d,
-      changeLog: [
-        ...(d.changeLog ?? []),
-        { timestamp: now, note: "Excel file uploaded" },
-      ],
-      lastUpdated: now,
-    };
+    const currentLog = dataRef.current?.changeLog ?? [];
+    const uploadedLog = d.changeLog ?? [];
+    const uploadedTimestamps = new Set(uploadedLog.map((e) => e.timestamp));
+    const mergedLog = [
+      ...uploadedLog,
+      ...currentLog.filter((e) => !uploadedTimestamps.has(e.timestamp)),
+      { timestamp: now, note: "Excel file uploaded" },
+    ].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    const withLog: PortfolioData = { ...d, changeLog: mergedLog, lastUpdated: now };
     setData(withLog);
     setTransactions(txn);
     setDataSource("excel");

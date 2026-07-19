@@ -1,14 +1,14 @@
-Symbol,Type,Quantity,Avg Cost,Cost Basis,Sector,Thesis
-CCJ,Equity,35,$119.33,$4176.55,Energy,Nuclear fuel, energy security
-ISRG,Equity,36,$414.36,$14916.96,Healthcare,Surgical robotics, secular growth
-MSFT,Equity,790,$435.06,$343697.40,Technology,Core Mag7 holding
-GOOGL,Equity,97,$370.76,$35963.72,Technology,Strongest Mag7 trend, target to build as second pillar
-NVDA,Equity,200,$189.12,$37824.00,Technology,AI/GPU leader, core holding
-AMZN,Equity,200,$239.80,$47960.00,Technology,Mag7, cloud/retail dominance
-SNDK,Equity,66,$1500.00,$99000.00,Technology,Sandisk Corporation
-SPCE,Equity,175,$3.24,$567.00,Aerospace,Delta Class spacecraft trials Q3-Q4 2026
-META,Equity,280,$596.57,$166958.60,Technology,Mag7 diversification
-VUAA.L,ETF,200,$144.86,$28972.00,ETF,Passive ETF floor, post-RNOR foreign asset structure
-BTC,Crypto,1,$111200.00,$111200.00,Digital Assets,Macro store-of-value layer
-ETH,Crypto,3,$3308.00,$9924.00,Digital Assets,Smart contract platform
-XRP,Crypto,3000,$3.0629,$9188.70,Digital Assets,Payment/utility token
+Symbol,Type,Date,Quantity,Avg Cost,Cost Basis,Sector,Thesis
+CCJ,Equity,2026-07-19,35,$119.33,$4176.55,Energy,Nuclear fuel, energy security
+ISRG,Equity,2026-07-19,36,$414.36,$14916.96,Healthcare,Surgical robotics, secular growth
+MSFT,Equity,2026-07-19,790,$435.06,$343697.40,Technology,Core Mag7 holding
+GOOGL,Equity,2026-07-19,97,$370.76,$35963.72,Technology,Strongest Mag7 trend, target to build as second pillar
+NVDA,Equity,2026-07-19,200,$189.12,$37824.00,Technology,AI/GPU leader, core holding
+AMZN,Equity,2026-07-19,200,$239.80,$47960.00,Technology,Mag7, cloud/retail dominance
+SNDK,Equity,2026-07-19,66,$1500.00,$99000.00,Technology,Sandisk Corporation
+SPCE,Equity,2026-07-19,175,$3.24,$567.00,Aerospace,Delta Class spacecraft trials Q3-Q4 2026
+META,Equity,2026-07-19,280,$596.57,$166958.60,Technology,Mag7 diversification
+VUAA.L,ETF,2026-07-19,200,$144.86,$28972.00,ETF,Passive ETF floor, post-RNOR foreign asset structure
+BTC,Crypto,2026-07-19,1,$111200.00,$111200.00,Digital Assets,Macro store-of-value layer
+ETH,Crypto,2026-07-19,3,$3308.00,$9924.00,Digital Assets,Smart contract platform
+XRP,Crypto,2026-07-19,3000,$3.0629,$9188.70,Digital Assets,Payment/utility token

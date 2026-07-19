@@ -3,8 +3,8 @@ export interface AIF { name: string; invested: number; current: number }
 export interface PPF { name: string; balance: number }
 export interface SSY { name: string; balance: number }
 export interface CashAccount { name: string; balance: number }
-export interface USEquity { symbol: string; name: string; shares: number; avgCost: number; currentPrice: number; currency: string }
-export interface Crypto { symbol: string; name: string; units: number; avgCost: number; currentPrice: number; currency: string }
+export interface USEquity { symbol: string; name: string; shares: number; avgCost: number; currentPrice: number; currency: string; positionDate?: string }
+export interface Crypto { symbol: string; name: string; units: number; avgCost: number; currentPrice: number; currency: string; positionDate?: string }
 export interface RealEstate { name: string; city: string; purchasePrice: number; currentValue: number; monthlyRent: number; currency: string }
 export interface Cashflow { name: string; annual: number }
 export interface WatchlistItem { name: string; currentValue: number; trigger: number; note: string }

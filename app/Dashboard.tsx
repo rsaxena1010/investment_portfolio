@@ -145,6 +145,7 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide, o
   const [showIndiaEditor, setShowIndiaEditor] = useState(false);
   const [sortCol, setSortCol] = useState<SortCol>("valueUSD");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [editingDate, setEditingDate] = useState<{ symbol: string; value: string } | null>(null);
 
   // FX override: user-typed rate takes priority over live Yahoo rate
   const [fxOverride, setFxOverride] = useState<{ USDINR: number; SGDINR: number } | null>(null);
@@ -156,6 +157,36 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide, o
   function handleSort(col: SortCol) {
     if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else { setSortCol(col); setSortDir("desc"); }
+  }
+
+  function saveDate(symbol: string, date: string, isEquity: boolean) {
+    const now = new Date().toISOString();
+    const base = {
+      changeLog: [...(data.changeLog ?? []), { timestamp: now, note: `Position date updated — ${symbol}: ${date || "cleared"}` }],
+      lastUpdated: now,
+    };
+    if (isEquity) {
+      onDataChange({
+        ...base,
+        singaporeHoldings: {
+          ...data.singaporeHoldings,
+          usEquity: data.singaporeHoldings.usEquity.map((e) =>
+            e.symbol === symbol ? { ...e, positionDate: date || undefined } : e
+          ),
+        },
+      });
+    } else {
+      onDataChange({
+        ...base,
+        singaporeHoldings: {
+          ...data.singaporeHoldings,
+          crypto: data.singaporeHoldings.crypto.map((c) =>
+            c.symbol === symbol ? { ...c, positionDate: date || undefined } : c
+          ),
+        },
+      });
+    }
+    setEditingDate(null);
   }
 
   function enterFxEdit() {
@@ -509,7 +540,30 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide, o
                 const qty = "shares" in pos ? pos.shares : pos.units;
                 return (
                   <tr key={pos.symbol} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 font-mono font-semibold text-gray-900">{pos.symbol}</td>
+                    <td className="px-5 py-3">
+                      <div className="font-mono font-semibold text-gray-900">{pos.symbol}</div>
+                      {editingDate?.symbol === pos.symbol ? (
+                        <input
+                          type="date"
+                          value={editingDate.value}
+                          onChange={(e) => setEditingDate({ symbol: pos.symbol, value: e.target.value })}
+                          onBlur={() => saveDate(pos.symbol, editingDate.value, "shares" in pos)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveDate(pos.symbol, editingDate.value, "shares" in pos);
+                            if (e.key === "Escape") setEditingDate(null);
+                          }}
+                          autoFocus
+                          className="mt-0.5 text-xs border-b border-indigo-400 outline-none w-28 bg-transparent text-gray-600"
+                        />
+                      ) : (
+                        <button
+                          onClick={() => setEditingDate({ symbol: pos.symbol, value: pos.positionDate ?? "" })}
+                          className="text-xs text-gray-400 hover:text-indigo-500 mt-0.5 block leading-none"
+                        >
+                          {pos.positionDate ?? "+ date"}
+                        </button>
+                      )}
+                    </td>
                     <td className="px-5 py-3 text-gray-600">{pos.name}</td>
                     <td className="px-5 py-3 text-right text-gray-700">{qty}</td>
                     <td className="px-5 py-3 text-right text-gray-700">{hide ? "——" : fmtUSD(pos.avgCost)}</td>
