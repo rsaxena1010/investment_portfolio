@@ -1,0 +1,150 @@
+{
+  "metadata": {
+    "last_update": "2026-06-30",
+    "portfolio_owner": "Rahul Saxena",
+    "currency": "USD",
+    "location": "DBS Singapore Wealth Account"
+  },
+  "equities": {
+    "MSFT": {
+      "shares": 1045,
+      "avg_cost": 442.37,
+      "cost_basis": 462375.65,
+      "sector": "Technology",
+      "market_cap": "Mega",
+      "thesis": "Core Mag7 holding, largest position, planned trim zone $430-440"
+    },
+    "META": {
+      "shares": 280,
+      "avg_cost": 596.57,
+      "cost_basis": 166958.6,
+      "sector": "Technology",
+      "market_cap": "Mega",
+      "thesis": "Mag7 diversification, increased from 200 to 280 shares"
+    },
+    "GOOGL": {
+      "shares": 97,
+      "avg_cost": 370.76,
+      "cost_basis": 35963.72,
+      "sector": "Technology",
+      "market_cap": "Mega",
+      "thesis": "Strongest Mag7 trend, target to build as second pillar, funded by MSFT trim"
+    },
+    "NVDA": {
+      "shares": 200,
+      "avg_cost": 189.12,
+      "cost_basis": 37824.0,
+      "sector": "Technology",
+      "market_cap": "Mega",
+      "thesis": "AI/GPU leader, core holding"
+    },
+    "AMZN": {
+      "shares": 200,
+      "avg_cost": 239.8,
+      "cost_basis": 47960.0,
+      "sector": "Technology",
+      "market_cap": "Mega",
+      "thesis": "Mag7, cloud/retail dominance"
+    },
+    "AVGO": {
+      "shares": 105,
+      "avg_cost": 342.15,
+      "cost_basis": 35925.75,
+      "sector": "Technology",
+      "market_cap": "Large",
+      "thesis": "Semiconductor infrastructure, diversifier"
+    },
+    "TSM": {
+      "shares": 39,
+      "avg_cost": 388.0,
+      "cost_basis": 15132.0,
+      "sector": "Technology",
+      "market_cap": "Large",
+      "thesis": "Semiconductor foundry critical player"
+    },
+    "ISRG": {
+      "shares": 36,
+      "avg_cost": 414.36,
+      "cost_basis": 14916.96,
+      "sector": "Healthcare",
+      "market_cap": "Large",
+      "thesis": "Surgical robotics, secular growth"
+    },
+    "ONTO": {
+      "shares": 68,
+      "avg_cost": 255.24,
+      "cost_basis": 17356.32,
+      "sector": "Healthcare",
+      "market_cap": "Mid",
+      "thesis": "Oncology biotech"
+    },
+    "CCJ": {
+      "shares": 35,
+      "avg_cost": 119.33,
+      "cost_basis": 4176.55,
+      "sector": "Energy",
+      "market_cap": "Large",
+      "thesis": "Nuclear fuel, energy security"
+    },
+    "SPCE": {
+      "shares": 175,
+      "avg_cost": 3.24,
+      "cost_basis": 567.0,
+      "sector": "Aerospace",
+      "market_cap": "Small",
+      "thesis": "Delta Class spacecraft trials Q3-Q4 2026, thesis hold on price weakness"
+    },
+    "QBTS": {
+      "shares": 25,
+      "avg_cost": 20.88,
+      "cost_basis": 522.0,
+      "sector": "Quantum",
+      "market_cap": "Micro",
+      "thesis": "Quantum computing, speculative"
+    },
+    "VUAA.L": {
+      "shares": 200,
+      "avg_cost": 144.86,
+      "cost_basis": 28972.0,
+      "sector": "ETF",
+      "fund_type": "Ireland-domiciled",
+      "thesis": "Passive ETF floor, template for post-RNOR foreign asset structure"
+    }
+  },
+  "crypto": {
+    "BTC": {
+      "qty": 1,
+      "avg_cost": 111200,
+      "cost_basis": 111200,
+      "thesis": "Macro store-of-value layer"
+    },
+    "ETH": {
+      "qty": 3,
+      "avg_cost": 3308,
+      "cost_basis": 9924,
+      "thesis": "Smart contract platform"
+    },
+    "XRP": {
+      "qty": 3000,
+      "avg_cost": 3.06,
+      "cost_basis": 9180,
+      "thesis": "Payment/utility token"
+    }
+  },
+  "inactive_positions": {
+    "IONQ": {
+      "shares": 0,
+      "last_avg_cost": 47.0,
+      "status": "Fully exited per Claude recommendation",
+      "re_entry_trigger": "$50 or below with volume confirmation",
+      "re_entry_range": "$48-52",
+      "re_entry_qty": "50-75 shares",
+      "thesis": "Q1 2026 revenue +755%, 256-qubit sale, $3B+ cash"
+    }
+  },
+  "portfolio_structure": {
+    "active_slots": 10,
+    "cash_buffer": "Trim proceeds to dry powder (no fresh external capital)",
+    "rebalancing_rules": "Self-funded within existing book"
+  }
+}

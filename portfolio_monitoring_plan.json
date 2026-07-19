@@ -1,0 +1,48 @@
+{
+  "data_collection": {
+    "frequency": "Daily market close",
+    "sources": [
+      "Alpha Vantage API (free tier: $5/request, daily/intraday data)",
+      "Yahoo Finance API (alternative, open source)",
+      "TradingView charts (manual technical analysis per SPDF framework)",
+      "Business news (Reuters, Bloomberg, sector-specific)"
+    ]
+  },
+  "technical_analysis_framework": {
+    "name": "SPDF - Saxena Portfolio Decision Framework",
+    "layers": {
+      "Layer1_Trend": "50/200-day SMAs, above both = uptrend (favor dips), below both = avoid",
+      "Layer2_Momentum": "RSI(14): <35 in uptrend = buy zone, >70 = trim zone; MACD crossover",
+      "Layer3_Volume": "Buy signal requires volume >1.3x 20-day avg; trim needs RSI >70 only",
+      "Layer4_Volatility": "ATR(14) for stop-loss distance and position sizing (signal layer)"
+    },
+    "rules": [
+      "Buy fires only if Layers 1+2+3 align",
+      "All sells require re-entry price and catalyst scan",
+      "No anti-momentum chasing (standing preference)",
+      "Always check catalysts before recommending exit"
+    ]
+  },
+  "key_triggers": {
+    "MSFT": {
+      "trim_signal": "Bounce to $430-440, proceeds to GOOGL build and dry powder"
+    },
+    "GOOGL": {
+      "build_signal": "SPDF uptrend confirmation, target meaningful second pillar"
+    },
+    "IONQ": {
+      "re_entry": "$50 or below with volume, suggest 50-75 shares"
+    },
+    "SPCE": {
+      "hold_thesis": "Delta Class trials Q3-Q4 2026, thesis hold on weakness"
+    },
+    "SPCX": {
+      "post_ipo_entry": "2-4 weeks post IPO (June 12 IPO), expect temp dips during rebalance"
+    }
+  },
+  "tax_considerations": {
+    "rnor_window": "FY2025-26 and FY2026-27: foreign gains NOT taxable in India",
+    "strategy": "Use proactively for rebalancing, not passively",
+    "post_rnor": "Shift to Ireland-domiciled ETFs (VUAA.L template) for long-term sit-and-forget"
+  }
+}

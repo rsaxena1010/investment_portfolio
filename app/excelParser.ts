@@ -198,10 +198,14 @@ export function generateTemplate(): ArrayBuffer {
 
 export interface RealizedTrade {
   symbol: string;
+  buyDate: string;
   sellDate: string;
+  holdingDays: number;
+  taxCategory: "LTCG" | "STCG";
   qty: number;
   buyPrice: number;
   sellPrice: number;
+  returnPct: number;
   pnl: number;
   currency: "USD" | "INR";
 }
@@ -222,12 +226,19 @@ export function computeFIFO(transactions: Transaction[]): RealizedTrade[] {
       while (remaining > 0 && queue.length > 0) {
         const lot = queue[0];
         const matched = Math.min(remaining, lot.qty);
+        const holdingDays = Math.floor(
+          (new Date(tx.date).getTime() - new Date(lot.date).getTime()) / 86400000
+        );
         realized.push({
           symbol: tx.symbol,
+          buyDate: lot.date,
           sellDate: tx.date,
+          holdingDays,
+          taxCategory: holdingDays > 365 ? "LTCG" : "STCG",
           qty: matched,
           buyPrice: lot.price,
           sellPrice: tx.price,
+          returnPct: ((tx.price - lot.price) / lot.price) * 100,
           pnl: matched * (tx.price - lot.price),
           currency: tx.currency,
         });

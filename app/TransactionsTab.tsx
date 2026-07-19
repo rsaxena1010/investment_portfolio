@@ -112,10 +112,14 @@ export default function TransactionsTab({ transactions, realizedTrades, hide, us
             <thead>
               <tr className="bg-gray-50 text-gray-500 uppercase tracking-wide">
                 <th className="px-4 py-2.5 text-left">Symbol</th>
+                <th className="px-4 py-2.5 text-left">Buy Date</th>
                 <th className="px-4 py-2.5 text-left">Sell Date</th>
+                <th className="px-4 py-2.5 text-right">Hold</th>
+                <th className="px-4 py-2.5 text-center">Tax</th>
                 <th className="px-4 py-2.5 text-right">Qty</th>
                 <th className="px-4 py-2.5 text-right">Buy Price</th>
                 <th className="px-4 py-2.5 text-right">Sell Price</th>
+                <th className="px-4 py-2.5 text-right">Return</th>
                 <th className="px-4 py-2.5 text-right">Realized P&L</th>
               </tr>
             </thead>
@@ -123,10 +127,22 @@ export default function TransactionsTab({ transactions, realizedTrades, hide, us
               {realizedTrades.map((t, i) => (
                 <tr key={i} className="hover:bg-gray-50">
                   <td className="px-4 py-2.5 font-mono font-semibold text-gray-900">{t.symbol}</td>
+                  <td className="px-4 py-2.5 text-gray-500">{t.buyDate}</td>
                   <td className="px-4 py-2.5 text-gray-600">{t.sellDate}</td>
+                  <td className="px-4 py-2.5 text-right text-gray-500 text-xs">{t.holdingDays}d</td>
+                  <td className="px-4 py-2.5 text-center">
+                    <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
+                      t.taxCategory === "LTCG"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-amber-100 text-amber-700"
+                    }`}>{t.taxCategory}</span>
+                  </td>
                   <td className="px-4 py-2.5 text-right text-gray-700">{t.qty}</td>
                   <td className="px-4 py-2.5 text-right text-gray-700">{hide ? "——" : fmtCurrency(t.buyPrice, t.currency)}</td>
                   <td className="px-4 py-2.5 text-right text-gray-700">{hide ? "——" : fmtCurrency(t.sellPrice, t.currency)}</td>
+                  <td className={`px-4 py-2.5 text-right text-xs font-semibold ${t.returnPct >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                    {t.returnPct >= 0 ? "+" : ""}{t.returnPct.toFixed(1)}%
+                  </td>
                   <td className="px-4 py-2.5 text-right">
                     <span className={`font-semibold flex items-center justify-end gap-1 ${t.pnl >= 0 ? "text-emerald-600" : "text-red-500"}`}>
                       {t.pnl >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -138,7 +154,7 @@ export default function TransactionsTab({ transactions, realizedTrades, hide, us
             </tbody>
             <tfoot>
               <tr className="bg-gray-50 border-t border-gray-200 font-semibold text-xs">
-                <td className="px-4 py-2.5 text-gray-700" colSpan={5}>Total Realized P&L</td>
+                <td className="px-4 py-2.5 text-gray-700" colSpan={9}>Total Realized P&L</td>
                 <td className="px-4 py-2.5 text-right">
                   <span className={realizedPnL >= 0 ? "text-emerald-700" : "text-red-600"}>
                     {hide ? (realizedPnL >= 0 ? "Gain" : "Loss") : `${realizedPnL >= 0 ? "+" : "−"}${fmtCurrency(realizedPnL, "USD")}`}

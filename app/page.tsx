@@ -1,18 +1,21 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Eye, EyeOff, RefreshCw, LayoutDashboard, List, Settings } from "lucide-react";
+import { Eye, EyeOff, RefreshCw, LayoutDashboard, List, Settings, TrendingUp } from "lucide-react";
 import Dashboard from "./Dashboard";
 import TransactionsTab from "./TransactionsTab";
+import AnalyticsTab from "./AnalyticsTab";
 import ExcelUpload from "./ExcelUpload";
 import type { PortfolioData, Transaction, MarketData } from "./types";
 import { computeFIFO } from "./excelParser";
+
+type PricePoint = { date: string; price: number };
 
 const LS_DATA = "portfolio_data_v1";
 const LS_TXN = "portfolio_txn_v1";
 const LS_SRC = "portfolio_source_v1";
 
-type Tab = "dashboard" | "transactions" | "data";
+type Tab = "dashboard" | "transactions" | "analytics" | "data";
 
 function minutesAgo(d: Date) {
   const diff = Math.floor((Date.now() - d.getTime()) / 60000);
@@ -31,6 +34,8 @@ export default function PortfolioPage() {
   const [loadingMarket, setLoadingMarket] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [refreshTick, setRefreshTick] = useState(0);
+  const [historyData, setHistoryData] = useState<Record<string, PricePoint[]> | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   // Load portfolio data on mount — localStorage first, then JSON default
   useEffect(() => {
@@ -98,6 +103,7 @@ export default function PortfolioPage() {
     setTransactions(txn);
     setDataSource("excel");
     setLivePrices({});
+    setHistoryData(null); // reset so analytics re-fetches for new symbols
     localStorage.setItem(LS_DATA, JSON.stringify(d));
     localStorage.setItem(LS_TXN, JSON.stringify(txn));
     localStorage.setItem(LS_SRC, "excel");
@@ -111,8 +117,26 @@ export default function PortfolioPage() {
     setDataSource("json");
     setTransactions([]);
     setLivePrices({});
+    setHistoryData(null);
     fetch("/portfolio-data.json").then((r) => r.json()).then(setData);
   }, []);
+
+  // Lazy-fetch 5y history when Analytics tab is first opened
+  useEffect(() => {
+    if (activeTab !== "analytics" || historyData !== null || loadingHistory || !data) return;
+    setLoadingHistory(true);
+    const symbols = [
+      ...data.singaporeHoldings.usEquity.map((e) => e.symbol),
+      ...data.singaporeHoldings.crypto.map((c) => c.symbol),
+      "USDINR=X",
+      "SPY",
+    ].join(",");
+    fetch(`/api/history?symbols=${symbols}&range=5y`)
+      .then((r) => r.json())
+      .then((d) => setHistoryData(d as Record<string, PricePoint[]>))
+      .catch(() => setHistoryData({}))
+      .finally(() => setLoadingHistory(false));
+  }, [activeTab, historyData, loadingHistory, data]);
 
   const realizedTrades = useMemo(() => computeFIFO(transactions), [transactions]);
   const usdinr = market?.fx?.USDINR ?? data?.fxRates?.USDINR ?? 84.5;
@@ -120,6 +144,7 @@ export default function PortfolioPage() {
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "transactions", label: "Transactions", icon: List },
+    { id: "analytics", label: "Analytics", icon: TrendingUp },
     { id: "data", label: "Data Source", icon: Settings },
   ];
 
@@ -210,6 +235,19 @@ export default function PortfolioPage() {
           realizedTrades={realizedTrades}
           hide={privacyMode}
           usdinr={usdinr}
+        />
+      )}
+
+      {activeTab === "analytics" && (
+        <AnalyticsTab
+          data={data}
+          transactions={transactions}
+          realizedTrades={realizedTrades}
+          historyData={historyData}
+          loadingHistory={loadingHistory}
+          livePrices={livePrices}
+          liveFX={market?.fx ?? null}
+          hide={privacyMode}
         />
       )}
 

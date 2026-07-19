@@ -2,6 +2,8 @@
 
 import { TrendingUp, TrendingDown, AlertCircle, IndianRupee, DollarSign, Wallet } from "lucide-react";
 import type { PortfolioData } from "./types";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -127,6 +129,8 @@ interface Props {
 }
 
 export default function Dashboard({ data, livePrices, liveFX, inflation, hide }: Props) {
+  const [showEditor, setShowEditor] = useState(false);
+  const HoldingsEditor = dynamic(() => import("./components/HoldingsEditor"), { ssr: false });
   const { indiaHoldings, singaporeHoldings, realEstate, cashflows, watchlist } = data;
 
   const USDINR = liveFX?.USDINR ?? data.fxRates.USDINR;
@@ -335,8 +339,23 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide }:
       {/* Singapore positions table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-700">Singapore / US Positions</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-700">Singapore / US Positions</h2>
+            <div>
+              <button
+                className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md"
+                onClick={() => setShowEditor((s) => !s)}
+              >
+                {showEditor ? "Close Editor" : "Edit Holdings"}
+              </button>
+            </div>
+          </div>
         </div>
+        {showEditor && (
+          <div className="p-4 border-b border-gray-100 bg-gray-50">
+            <HoldingsEditor />
+          </div>
+        )}
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rahul Saxena - Investment Portfolio Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        
+        .header-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2a5298;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+        
+        .positive {
+            color: #27ae60;
+        }
+        
+        .negative {
+            color: #e74c3c;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #2a5298;
+            padding-bottom: 10px;
+        }
+        
+        .holdings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .holdings-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            color: #1e3c72;
+        }
+        
+        .holdings-table td {
+            padding: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .holdings-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .symbol {
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        
+        .trigger-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        
+        .trigger-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .trigger-content {
+            color: #555;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        
+        .framework-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+        
+        .framework-title {
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .framework-layer {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        
+        .alert-banner {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .data-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .data-section h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #1e3c72;
+        }
+        
+        .secondary-btn {
+            background: #6c757d;
+        }
+        
+        .secondary-btn:hover {
+            background: #5a6268;
+        }
+        
+        .success-btn {
+            background: #27ae60;
+        }
+        
+        .success-btn:hover {
+            background: #229954;
+        }
+        
+        footer {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Investment Portfolio Dashboard</h1>
+            <p class="subtitle">Rahul Saxena | Multi-Asset Family Portfolio | Real-Time Analytics</p>
+            
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Portfolio Status</div>
+                    <div class="stat-value">ACTIVE</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Last Updated</div>
+                    <div class="stat-value" id="last-update">Loading...</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Tax Status</div>
+                    <div class="stat-value">RNOR</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Key Advisor</div>
+                    <div class="stat-value">Chandra Soni</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alert Banner -->
+        <div class="alert-banner">
+            <div class="alert-title">⚠️ Active Re-Entry Alert: IONQ</div>
+            Re-entry trigger: $50 or below with volume confirmation | Suggested position: 50-75 shares | Thesis: Q1 2026 revenue +755%, 256-qubit sale, $3B+ cash
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="dashboard">
+            <!-- US Equity Holdings -->
+            <div class="card">
+                <h2>US Equity Holdings (13 Active)</h2>
+                <table class="holdings-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Shares</th>
+                            <th>Avg Cost</th>
+                            <th>Thesis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="symbol">MSFT</td><td>1,045</td><td>$442.37</td><td>Mag7, Trim zone $430-440</td></tr>
+                        <tr><td class="symbol">META</td><td>280</td><td>$596.57</td><td>Mag7 Diversification</td></tr>
+                        <tr><td class="symbol">GOOGL</td><td>97</td><td>$370.76</td><td>Build to 2nd Pillar</td></tr>
+                        <tr><td class="symbol">NVDA</td><td>200</td><td>$189.12</td><td>AI/GPU Leader</td></tr>
+                        <tr><td class="symbol">AMZN</td><td>200</td><td>$239.80</td><td>Cloud/Retail Dominance</td></tr>
+                        <tr><td class="symbol">AVGO</td><td>105</td><td>$342.15</td><td>Semiconductor Infra</td></tr>
+                        <tr><td class="symbol">SPCE</td><td>175</td><td>$3.24</td><td>Delta Trials Q3-Q4</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Key Triggers & Signals -->
+            <div class="card">
+                <h2>🎯 Key Triggers & Signals</h2>
+                
+                <div class="trigger-box">
+                    <div class="trigger-title">MSFT Trim Zone</div>
+                    <div class="trigger-content">
+                        <strong>Signal:</strong> Bounce to $430-440<br>
+                        <strong>Action:</strong> Trim position, fund GOOGL build + dry powder<br>
+                        <strong>Status:</strong> Monitoring (currently underwater)
+                    </div>
+                </div>
+                
+                <div class="trigger-box">
+                    <div class="trigger-title">GOOGL Build Opportunity</div>
+                    <div class="trigger-content">
+                        <strong>Signal:</strong> SPDF uptrend confirmation<br>
+                        <strong>Action:</strong> Build from 97 to meaningful 2nd pillar<br>
+                        <strong>Strength:</strong> Strongest Mag7 trend
+                    </div>
+                </div>
+                
+                <div class="trigger-box">
+                    <div class="trigger-title">IONQ Re-Entry Alert</div>
+                    <div class="trigger-content">
+                        <strong>Signal:</strong> $50 or below + volume<br>
+                        <strong>Action:</strong> Buy 50-75 shares<br>
+                        <strong>Thesis:</strong> Revenue +755%, 256Q sale, $3B cash
+                    </div>
+                </div>
+                
+                <div class="trigger-box">
+                    <div class="trigger-title">SPCX (SpaceX ETF) Entry</div>
+                    <div class="trigger-content">
+                        <strong>Timing:</strong> 2-4 weeks post IPO (June 12)<br>
+                        <strong>Expect:</strong> Temp dips during index rebalancing<br>
+                        <strong>Action:</strong> Position for dip buying
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPDF Framework -->
+        <div class="data-section">
+            <h3>📈 SPDF Framework (Saxena Portfolio Decision Framework)</h3>
+            <p style="margin-bottom: 15px; color: #555;">Technical analysis framework for daily execution timing (applies AFTER fundamental thesis is confirmed)</p>
+            
+            <div class="framework-box">
+                <div class="framework-title">Layer 1: Trend Gate</div>
+                <div class="framework-layer">
+                    <strong>50-day & 200-day SMAs:</strong> Above both = uptrend (favor dips) | Below both = avoid fresh buys
+                </div>
+            </div>
+            
+            <div class="framework-box">
+                <div class="framework-title">Layer 2: Momentum</div>
+                <div class="framework-layer">
+                    <strong>RSI(14):</strong> &lt;35 in uptrend = buy zone | &gt;70 = trim/take-profit zone | MACD crossover as secondary
+                </div>
+            </div>
+            
+            <div class="framework-box">
+                <div class="framework-title">Layer 3: Volume (BUY only)</div>
+                <div class="framework-layer">
+                    <strong>Signal-day volume:</strong> &gt;1.3x 20-day average = conviction | Else wait | For TRIMS: RSI &gt;70 suffices
+                </div>
+            </div>
+            
+            <div class="framework-box">
+                <div class="framework-title">Layer 4: Volatility</div>
+                <div class="framework-layer">
+                    <strong>ATR(14):</strong> Sets stop-loss distance and position sizing | Not a signal layer
+                </div>
+            </div>
+            
+            <p style="margin-top: 15px; padding: 15px; background: #e8f4f8; border-radius: 5px; color: #2c3e50;">
+                <strong>Rule:</strong> Buy fires only if Layers 1 + 2 + 3 align | All sells require re-entry price and catalyst scan
+            </p>
+        </div>
+
+        <!-- Tax Strategy -->
+        <div class="data-section">
+            <h3>💰 Tax Strategy & RNOR Window</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div style="padding: 20px; background: #f0f7ff; border-radius: 8px; border-left: 4px solid #3498db;">
+                    <div style="font-weight: bold; color: #2c3e50; margin-bottom: 10px;">FY2025-26 & FY2026-27</div>
+                    <p style="color: #555; line-height: 1.6;">
+                        Foreign-sourced income (US equities, crypto) is <strong>NOT taxable</strong> in India under RNOR status. This is the highest-leverage tax window for rebalancing.
+                    </p>
+                </div>
+                <div style="padding: 20px; background: #fffbf0; border-radius: 8px; border-left: 4px solid #f39c12;">
+                    <div style="font-weight: bold; color: #7d6608; margin-bottom: 10px;">Post-RNOR Planning</div>
+                    <p style="color: #555; line-height: 1.6;">
+                        Transition to Ireland-domiciled ETFs (e.g., VUAA.L) for more favorable long-term tax treatment. Sit-and-forget structure.
+                    </p>
+                </div>
+                <div style="padding: 20px; background: #f0f8f0; border-radius: 8px; border-left: 4px solid #27ae60;">
+                    <div style="font-weight: bold; color: #145a32; margin-bottom: 10px;">Action: Old Regime Payroll</div>
+                    <p style="color: #555; line-height: 1.6;">
+                        Declare Old Regime to Blinkit payroll (HRA exemption is material). Employer currently defaults to New Regime.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="data-section">
+            <h3>🔄 Real-Time Data Management</h3>
+            <p style="margin-bottom: 20px; color: #555;">
+                Connect to Alpha Vantage API and build comprehensive historical database for all holdings
+            </p>
+            
+            <div class="button-group">
+                <button class="success-btn">Fetch Latest Market Data</button>
+                <button>Update Holdings from DBS Screenshot</button>
+                <button>Generate Daily Monitoring Report</button>
+                <button class="secondary-btn">View Data Files</button>
+                <button class="secondary-btn">Download Analytics CSV</button>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 0.9em; color: #555;">
+                <strong>Available Data Files:</strong><br>
+                • portfolio_holdings_master.json - Master holdings database<br>
+                • portfolio_tracker.csv - Quick reference table<br>
+                • portfolio_monitoring_plan.json - Analysis framework & triggers<br>
+                • portfolio_data_fetcher.py - Python data integration tool<br>
+                • daily_monitoring_report_template.json - Report template
+            </div>
+        </div>
+
+        <!-- Performance Analytics -->
+        <div class="data-section">
+            <h3>📊 Portfolio Analytics</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div>
+                    <h4 style="color: #1e3c72; margin-bottom: 15px;">Allocation by Asset Class</h4>
+                    <canvas id="allocationChart"></canvas>
+                </div>
+                <div>
+                    <h4 style="color: #1e3c72; margin-bottom: 15px;">Sector Concentration</h4>
+                    <canvas id="sectorChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="data-section">
+            <h3>📋 Next Steps & Action Items</h3>
+            <ul style="line-height: 2; color: #555;">
+                <li>✅ Install yfinance library: <code style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px;">pip install yfinance</code></li>
+                <li>✅ Run portfolio_data_fetcher.py daily to update holdings data</li>
+                <li>✅ Monitor SPDF signals on TradingView for execution timing</li>
+                <li>✅ Flag IONQ below $50 for re-entry discussion with Chandra</li>
+                <li>✅ Track MSFT bounce to $430-440 for trim execution</li>
+                <li>✅ Monitor SPCE Delta Class trials (Q3-Q4 2026)</li>
+                <li>✅ Await SPCX entry window (2-4 weeks post June 12 IPO)</li>
+                <li>✅ Declare Old Regime to Blinkit payroll before Q1 end</li>
+                <li>✅ File ITR-2 with Schedule FA by July 31, 2026</li>
+                <li>✅ Resume PPF contributions for FY2026-27</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>Rahul Saxena Investment Portfolio | RNOR Status: FY2025-26 & FY2026-27 | Last Updated: <span id="footer-time">Loading...</span></p>
+        </footer>
+    </div>
+
+    <script>
+        // Update timestamps
+        document.getElementById('last-update').textContent = new Date().toLocaleDateString();
+        document.getElementById('footer-time').textContent = new Date().toLocaleString();
+
+        // Allocation Chart
+        const allocationCtx = document.getElementById('allocationChart').getContext('2d');
+        new Chart(allocationCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['US Equities', 'Crypto', 'ETF Floor', 'Cash'],
+                datasets: [{
+                    data: [65, 15, 12, 8],
+                    backgroundColor: ['#2a5298', '#f39c12', '#27ae60', '#95a5a6']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Sector Chart
+        const sectorCtx = document.getElementById('sectorChart').getContext('2d');
+        new Chart(sectorCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Technology', 'Healthcare', 'Energy', 'Aerospace', 'Other'],
+                datasets: [{
+                    label: 'Position Count',
+                    data: [8, 2, 1, 1, 2],
+                    backgroundColor: '#2a5298'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

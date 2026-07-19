@@ -1,0 +1,18 @@
+Symbol,Type,Quantity,Avg Cost,Cost Basis,Sector,Status,Thesis
+MSFT,Equity/ETF,1045,$442.37,$462375.65,Technology,Active,"Core Mag7 holding, largest position, planned trim "
+META,Equity/ETF,280,$596.57,$166958.60,Technology,Active,"Mag7 diversification, increased from 200 to 280 sh"
+GOOGL,Equity/ETF,97,$370.76,$35963.72,Technology,Active,"Strongest Mag7 trend, target to build as second pi"
+NVDA,Equity/ETF,200,$189.12,$37824.00,Technology,Active,"AI/GPU leader, core holding"
+AMZN,Equity/ETF,200,$239.80,$47960.00,Technology,Active,"Mag7, cloud/retail dominance"
+AVGO,Equity/ETF,105,$342.15,$35925.75,Technology,Active,"Semiconductor infrastructure, diversifier"
+TSM,Equity/ETF,39,$388.00,$15132.00,Technology,Active,Semiconductor foundry critical player
+ISRG,Equity/ETF,36,$414.36,$14916.96,Healthcare,Active,"Surgical robotics, secular growth"
+ONTO,Equity/ETF,68,$255.24,$17356.32,Healthcare,Active,Oncology biotech
+CCJ,Equity/ETF,35,$119.33,$4176.55,Energy,Active,"Nuclear fuel, energy security"
+SPCE,Equity/ETF,175,$3.24,$567.00,Aerospace,Active,"Delta Class spacecraft trials Q3-Q4 2026, thesis h"
+QBTS,Equity/ETF,25,$20.88,$522.00,Quantum,Active,"Quantum computing, speculative"
+VUAA.L,Equity/ETF,200,$144.86,$28972.00,ETF,Active,"Passive ETF floor, template for post-RNOR foreign "
+BTC,Crypto,1,$111200.00,$111200.00,Digital Assets,Active,Macro store-of-value layer
+ETH,Crypto,3,$3308.00,$9924.00,Digital Assets,Active,Smart contract platform
+XRP,Crypto,3000,$3.06,$9180.00,Digital Assets,Active,Payment/utility token
+IONQ,Equity (Inactive),0,$47.00,0,Technology,Re-entry Alert,$50 or below with volume confirmation
