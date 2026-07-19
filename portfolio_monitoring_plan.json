@@ -25,13 +25,11 @@
   },
   "key_triggers": {
     "MSFT": {
-      "trim_signal": "Bounce to $430-440, proceeds to GOOGL build and dry powder"
+      "trim_executed": "Trimmed 1045→790 shares at $430-440 zone, avg_cost updated to $435.06",
+      "next_action": "Monitor for further trim if RSI >70 above $440; or hold as core position"
     },
     "GOOGL": {
       "build_signal": "SPDF uptrend confirmation, target meaningful second pillar"
-    },
-    "IONQ": {
-      "re_entry": "$50 or below with volume, suggest 50-75 shares"
     },
     "SPCE": {
       "hold_thesis": "Delta Class trials Q3-Q4 2026, thesis hold on weakness"
