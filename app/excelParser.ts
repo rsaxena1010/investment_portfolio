@@ -108,6 +108,29 @@ export function parseExcel(buffer: ArrayBuffer): { data: PortfolioData; transact
     if (pair === "SGDINR") SGDINR = num(row.Rate, SGDINR);
   }
 
+  // ── ESOPs ──
+  const esopRows = sheetToRows(wb, "ESOPs", "ESOP");
+  const esops = esopRows
+    .filter((r) => str(r.Company))
+    .map((r) => ({
+      company: str(r.Company),
+      symbol: str(r.Symbol ?? ""),
+      grantDate: str(r.GrantDate ?? r["Grant Date"] ?? ""),
+      totalGranted: num(r.TotalGranted ?? r["Total Granted"] ?? 0),
+      vested: num(r.Vested ?? 0),
+      unvested: num(r.Unvested ?? 0),
+      strikePrice: num(r.StrikePrice ?? r["Strike Price"] ?? 0),
+      currentPrice: num(r.CurrentPrice ?? r["Current Price"] ?? 0),
+      currency: str(r.Currency ?? "INR"),
+      taxRate: num(r.TaxRate ?? r["Tax Rate"] ?? 0.40),
+    }));
+
+  // ── ChangeLog ──
+  const clRows = sheetToRows(wb, "ChangeLog", "Change Log");
+  const changeLog = clRows
+    .filter((r) => str(r.Timestamp))
+    .map((r) => ({ timestamp: str(r.Timestamp), note: str(r.Note ?? "") }));
+
   // ── Transactions ──
   const txRows = sheetToRows(wb, "Transactions");
   const transactions: Transaction[] = txRows
@@ -137,6 +160,8 @@ export function parseExcel(buffer: ArrayBuffer): { data: PortfolioData; transact
     realEstate,
     cashflows: { inflows, outflows },
     watchlist,
+    esops: esops.length ? esops : [],
+    changeLog: changeLog.length ? changeLog : [],
   };
 
   return { data, transactions };
@@ -293,6 +318,30 @@ export function exportPortfolioToExcel(
     { Pair: "USDINR", Rate: data.fxRates.USDINR },
     { Pair: "SGDINR", Rate: data.fxRates.SGDINR },
   ]);
+
+  // ESOPs
+  if ((data.esops ?? []).length > 0) {
+    addSheet("ESOPs", (data.esops ?? []).map((e) => {
+      const grossPerShare = Math.max(0, e.currentPrice - e.strikePrice);
+      const vestedGross = e.vested * grossPerShare;
+      const taxAmt = vestedGross * e.taxRate;
+      return {
+        Company: e.company, Symbol: e.symbol ?? "", GrantDate: e.grantDate,
+        TotalGranted: e.totalGranted, Vested: e.vested, Unvested: e.unvested,
+        StrikePrice: e.strikePrice, CurrentPrice: e.currentPrice,
+        Currency: e.currency, TaxRate: e.taxRate,
+        VestedGrossGain: vestedGross, TaxLiability: taxAmt,
+        VestedNetGain: vestedGross - taxAmt,
+      };
+    }));
+  }
+
+  // ChangeLog
+  const exportLog = [
+    ...(data.changeLog ?? []),
+    { timestamp: new Date().toISOString(), note: "Excel exported" },
+  ];
+  addSheet("ChangeLog", exportLog.map((e) => ({ Timestamp: e.timestamp, Note: e.note })));
 
   // Transactions
   if (transactions.length > 0) {

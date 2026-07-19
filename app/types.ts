@@ -9,6 +9,24 @@ export interface RealEstate { name: string; city: string; purchasePrice: number;
 export interface Cashflow { name: string; annual: number }
 export interface WatchlistItem { name: string; currentValue: number; trigger: number; note: string }
 
+export interface EsopGrant {
+  company: string;
+  symbol?: string;
+  grantDate: string;
+  totalGranted: number;
+  vested: number;
+  unvested: number;
+  strikePrice: number;
+  currentPrice: number;
+  currency: string;
+  taxRate: number;
+}
+
+export interface ChangeLogEntry {
+  timestamp: string;
+  note: string;
+}
+
 export interface PortfolioData {
   fxRates: { USDINR: number; SGDINR: number };
   indiaHoldings: {
@@ -25,6 +43,9 @@ export interface PortfolioData {
   realEstate: RealEstate[];
   cashflows: { inflows: Cashflow[]; outflows: Cashflow[] };
   watchlist: WatchlistItem[];
+  esops?: EsopGrant[];
+  changeLog?: ChangeLogEntry[];
+  lastUpdated?: string;
 }
 
 export interface Transaction {

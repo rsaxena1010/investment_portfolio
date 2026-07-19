@@ -2,9 +2,9 @@
 
 import { useState, useRef } from "react";
 import { Plus, Trash2, Upload, X } from "lucide-react";
-import type { PortfolioData } from "../types";
+import type { PortfolioData, EsopGrant } from "../types";
 
-type Tab = "mf" | "property" | "savings" | "cashflows";
+type Tab = "mf" | "property" | "savings" | "cashflows" | "esop";
 
 interface Props {
   data: PortfolioData;
@@ -47,6 +47,8 @@ export default function IndiaDataEditor({ data, onChange, onClose }: Props) {
   const [properties, setProperties] = useState(() => data.realEstate.map((r) => ({ ...r })));
   const [inflows, setInflows] = useState(() => data.cashflows.inflows.map((f) => ({ ...f })));
   const [outflows, setOutflows] = useState(() => data.cashflows.outflows.map((f) => ({ ...f })));
+  const [esops, setEsops] = useState<EsopGrant[]>(() => (data.esops ?? []).map((e) => ({ ...e })));
+  const [saveNote, setSaveNote] = useState("");
 
   const mfInputRef = useRef<HTMLInputElement>(null);
   const [mfUploading, setMfUploading] = useState(false);
@@ -70,6 +72,7 @@ export default function IndiaDataEditor({ data, onChange, onClose }: Props) {
   }
 
   function saveAll() {
+    const now = new Date().toISOString();
     onChange({
       indiaHoldings: {
         mutualFunds: mfs.filter((f) => f.name),
@@ -83,6 +86,12 @@ export default function IndiaDataEditor({ data, onChange, onClose }: Props) {
         inflows: inflows.filter((f) => f.name),
         outflows: outflows.filter((f) => f.name),
       },
+      esops: esops.filter((e) => e.company),
+      changeLog: [
+        ...(data.changeLog ?? []),
+        { timestamp: now, note: saveNote.trim() || "Updated via dashboard editor" },
+      ],
+      lastUpdated: now,
     });
     onClose();
   }
@@ -92,6 +101,7 @@ export default function IndiaDataEditor({ data, onChange, onClose }: Props) {
     { id: "property", label: "Property" },
     { id: "savings", label: "Savings & Cash" },
     { id: "cashflows", label: "Income & Expenses" },
+    { id: "esop", label: "ESOPs" },
   ];
 
   return (
@@ -396,16 +406,123 @@ export default function IndiaDataEditor({ data, onChange, onClose }: Props) {
             </div>
           </div>
         )}
+        {/* ── ESOPs ── */}
+        {tab === "esop" && (
+          <div className="space-y-4">
+            <p className="text-xs text-gray-500 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+              Track vested ESOPs not yet sold. Tax rate defaults to 40%. Net value = gross gain × (1 − tax rate).
+            </p>
+            {esops.map((e, i) => {
+              const grossPerShare = Math.max(0, e.currentPrice - e.strikePrice);
+              const vestedGross = e.vested * grossPerShare;
+              const unvestedGross = e.unvested * grossPerShare;
+              const vestedNet = vestedGross * (1 - e.taxRate);
+              return (
+                <div key={i} className="p-4 border border-gray-100 rounded-lg bg-gray-50 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-gray-700">{e.company || `Grant ${i + 1}`}</span>
+                    <button onClick={() => setEsops((p) => p.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="col-span-2">
+                      <label className="text-xs text-gray-500 mb-1 block">Company</label>
+                      <StrInput value={e.company} placeholder="e.g. Eternal Limited"
+                        onChange={(v) => setEsops((p) => p.map((x, j) => j === i ? { ...x, company: v } : x))} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Currency</label>
+                      <select
+                        className="border border-gray-200 rounded px-2 py-1.5 text-sm w-full focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                        value={e.currency}
+                        onChange={(ev) => setEsops((p) => p.map((x, j) => j === i ? { ...x, currency: ev.target.value } : x))}
+                      >
+                        <option value="INR">INR</option>
+                        <option value="USD">USD</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Grant Date</label>
+                      <input type="date" className="border border-gray-200 rounded px-2 py-1.5 text-sm w-full focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                        value={e.grantDate}
+                        onChange={(ev) => setEsops((p) => p.map((x, j) => j === i ? { ...x, grantDate: ev.target.value } : x))} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Vested (not sold)</label>
+                      <NumInput value={e.vested} onChange={(v) => setEsops((p) => p.map((x, j) => j === i ? { ...x, vested: v } : x))} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Unvested</label>
+                      <NumInput value={e.unvested} onChange={(v) => setEsops((p) => p.map((x, j) => j === i ? { ...x, unvested: v } : x))} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Strike / Grant Price</label>
+                      <NumInput value={e.strikePrice} onChange={(v) => setEsops((p) => p.map((x, j) => j === i ? { ...x, strikePrice: v } : x))} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Current Market Price</label>
+                      <NumInput value={e.currentPrice} onChange={(v) => setEsops((p) => p.map((x, j) => j === i ? { ...x, currentPrice: v } : x))} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Tax Rate</label>
+                      <div className="flex items-center gap-1">
+                        <NumInput value={Math.round(e.taxRate * 100)} onChange={(v) => setEsops((p) => p.map((x, j) => j === i ? { ...x, taxRate: v / 100 } : x))} />
+                        <span className="text-sm text-gray-400">%</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Calculated summary */}
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-200 text-xs">
+                    <div className="bg-white rounded p-2 text-center">
+                      <p className="text-gray-400">Vested gross gain</p>
+                      <p className="font-semibold text-gray-800">{e.currency === "INR" ? "₹" : "$"}{vestedGross.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</p>
+                    </div>
+                    <div className="bg-red-50 rounded p-2 text-center">
+                      <p className="text-red-400">Tax ({Math.round(e.taxRate * 100)}%)</p>
+                      <p className="font-semibold text-red-700">−{e.currency === "INR" ? "₹" : "$"}{(vestedGross * e.taxRate).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</p>
+                    </div>
+                    <div className="bg-emerald-50 rounded p-2 text-center">
+                      <p className="text-emerald-600">Vested net</p>
+                      <p className="font-semibold text-emerald-800">{e.currency === "INR" ? "₹" : "$"}{vestedNet.toLocaleString("en-IN", { maximumFractionDigits: 0 })}</p>
+                    </div>
+                    {unvestedGross > 0 && (
+                      <div className="col-span-3 bg-blue-50 rounded p-2 flex justify-between">
+                        <span className="text-blue-500">Unvested potential (net of tax)</span>
+                        <span className="font-semibold text-blue-700">{e.currency === "INR" ? "₹" : "$"}{(unvestedGross * (1 - e.taxRate)).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            <button
+              onClick={() => setEsops((p) => [...p, { company: "", symbol: "", grantDate: "", totalGranted: 0, vested: 0, unvested: 0, strikePrice: 0, currentPrice: 0, currency: "INR", taxRate: 0.40 }])}
+              className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add ESOP Grant
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50">
-        <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
-        <button
-          onClick={saveAll}
-          className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
-        >
-          Save All Changes
-        </button>
+      <div className="px-5 py-4 border-t border-gray-100 bg-gray-50 space-y-3">
+        <input
+          type="text"
+          className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400"
+          placeholder="Add a note for this update (e.g. 'CAMS statement July 2026', 'Q2 ESOP vest') — saved in change log"
+          value={saveNote}
+          onChange={(e) => setSaveNote(e.target.value)}
+        />
+        <div className="flex items-center justify-between">
+          <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-700">Cancel</button>
+          <button
+            onClick={saveAll}
+            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+          >
+            Save All Changes
+          </button>
+        </div>
       </div>
     </div>
   );

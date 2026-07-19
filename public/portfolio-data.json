@@ -67,6 +67,24 @@
       { "name": "SIP Investments", "annual": 600000 }
     ]
   },
+  "esops": [
+    {
+      "company": "Eternal Limited",
+      "symbol": "ETERNAL.NS",
+      "grantDate": "",
+      "totalGranted": 0,
+      "vested": 0,
+      "unvested": 0,
+      "strikePrice": 0,
+      "currentPrice": 0,
+      "currency": "INR",
+      "taxRate": 0.40
+    }
+  ],
+  "changeLog": [
+    { "timestamp": "2026-07-19T00:00:00.000Z", "note": "Initial portfolio setup" }
+  ],
+  "lastUpdated": "2026-07-19T00:00:00.000Z",
   "watchlist": [
     { "name": "Gold ETF", "currentValue": 6800, "trigger": 7200, "note": "Buy on breakout above ₹7,200" },
     { "name": "Nifty 50 Index", "currentValue": 22500, "trigger": 20000, "note": "Rebalance if drops below 20,000" },

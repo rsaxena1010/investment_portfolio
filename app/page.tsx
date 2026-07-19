@@ -128,12 +128,21 @@ export default function PortfolioPage() {
   }, [data, transactions, livePrices]);
 
   const handleExcelUpload = useCallback((d: PortfolioData, txn: Transaction[]) => {
-    setData(d);
+    const now = new Date().toISOString();
+    const withLog: PortfolioData = {
+      ...d,
+      changeLog: [
+        ...(d.changeLog ?? []),
+        { timestamp: now, note: "Excel file uploaded" },
+      ],
+      lastUpdated: now,
+    };
+    setData(withLog);
     setTransactions(txn);
     setDataSource("excel");
     setLivePrices({});
-    setHistoryData(null); // reset so analytics re-fetches for new symbols
-    localStorage.setItem(LS_DATA, JSON.stringify(d));
+    setHistoryData(null);
+    localStorage.setItem(LS_DATA, JSON.stringify(withLog));
     localStorage.setItem(LS_TXN, JSON.stringify(txn));
     localStorage.setItem(LS_SRC, "excel");
     setActiveTab("dashboard");

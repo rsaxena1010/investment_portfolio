@@ -167,8 +167,16 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide, o
   }
 
   function saveFx() {
+    const now = new Date().toISOString();
     setFxOverride(fxDraft);
-    onDataChange({ fxRates: fxDraft });
+    onDataChange({
+      fxRates: fxDraft,
+      changeLog: [
+        ...(data.changeLog ?? []),
+        { timestamp: now, note: `FX rates updated — USD/INR: ${fxDraft.USDINR.toFixed(2)}, SGD/INR: ${fxDraft.SGDINR.toFixed(2)}` },
+      ],
+      lastUpdated: now,
+    });
     setFxEditMode(false);
   }
 
@@ -205,11 +213,27 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide, o
   const reTotalINR = realEstate.reduce((s, p) => s + p.currentValue, 0);
   const rentAnnual = realEstate.reduce((s, p) => s + p.monthlyRent * 12, 0);
 
-  // Grand total
-  const grandTotal = indiaLiquid + sgTotalINR + reTotalINR;
+  // ESOPs
+  const esopPositions = (data.esops ?? []).map((e) => {
+    const toINR = e.currency === "USD" ? USDINR : 1;
+    const grossPerShare = Math.max(0, e.currentPrice - e.strikePrice);
+    const vestedGross = e.vested * grossPerShare * toINR;
+    const unvestedGross = e.unvested * grossPerShare * toINR;
+    const vestedNet = vestedGross * (1 - e.taxRate);
+    const unvestedNet = unvestedGross * (1 - e.taxRate);
+    return { ...e, vestedGross, unvestedGross, vestedNet, unvestedNet, taxLiability: vestedGross * e.taxRate };
+  });
+  const esopVestedGrossINR = esopPositions.reduce((s, e) => s + e.vestedGross, 0);
+  const esopVestedNetINR = esopPositions.reduce((s, e) => s + e.vestedNet, 0);
+  const esopUnvestedNetINR = esopPositions.reduce((s, e) => s + e.unvestedNet, 0);
+  const esopTaxLiability = esopPositions.reduce((s, e) => s + e.taxLiability, 0);
+
+  // Grand total — includes vested ESOP net of tax
+  const grandTotal = indiaLiquid + sgTotalINR + reTotalINR + esopVestedNetINR;
   const indiaPct = grandTotal ? (indiaLiquid / grandTotal) * 100 : 0;
   const sgPct = grandTotal ? (sgTotalINR / grandTotal) * 100 : 0;
   const rePct = grandTotal ? (reTotalINR / grandTotal) * 100 : 0;
+  const esopPct = grandTotal ? (esopVestedNetINR / grandTotal) * 100 : 0;
 
   // Cashflows
   const totalInflow = cashflows.inflows.reduce((s, f) => s + f.annual, 0);
@@ -316,12 +340,14 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide, o
               { label: "India Liquid", valueINR: indiaLiquid, color: "#6366f1" },
               { label: "Singapore/US", valueINR: sgTotalINR, color: "#10b981" },
               { label: "Real Estate", valueINR: reTotalINR, color: "#f59e0b" },
+              ...(esopVestedNetINR > 0 ? [{ label: "ESOPs (net)", valueINR: esopVestedNetINR, color: "#06b6d4" }] : []),
             ]} />
             <div className="space-y-3 text-sm">
               {[
                 { label: "India Liquid", value: indiaLiquid, color: "#6366f1" },
                 { label: "Singapore/US", value: sgTotalINR, color: "#10b981" },
                 { label: "Real Estate", value: reTotalINR, color: "#f59e0b" },
+                ...(esopVestedNetINR > 0 ? [{ label: "ESOPs (net)", value: esopVestedNetINR, color: "#06b6d4" }] : []),
               ].map((seg) => (
                 <div key={seg.label} className="flex items-start gap-2">
                   <div className="w-3 h-3 rounded-full mt-0.5 shrink-0" style={{ backgroundColor: seg.color }} />
@@ -344,6 +370,7 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide, o
               { label: "India Liquid", pct: indiaPct, color: "bg-indigo-500", value: indiaLiquid },
               { label: "Singapore/US", pct: sgPct, color: "bg-emerald-500", value: sgTotalINR },
               { label: "Real Estate", pct: rePct, color: "bg-amber-500", value: reTotalINR },
+              ...(esopVestedNetINR > 0 ? [{ label: "ESOPs (net)", pct: esopPct, color: "bg-cyan-500", value: esopVestedNetINR }] : []),
             ].map((item) => (
               <div key={item.label}>
                 <div className="flex justify-between text-xs text-gray-600 mb-1">
@@ -639,6 +666,89 @@ export default function Dashboard({ data, livePrices, liveFX, inflation, hide, o
           </div>
         </div>
       </div>
+
+      {/* ESOPs */}
+      {esopPositions.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-700">ESOP Holdings</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Vested shares not yet sold · net value after tax shown in portfolio total</p>
+            </div>
+            <div className="flex gap-4 text-xs text-right">
+              <div>
+                <p className="text-gray-400">Gross (vested)</p>
+                <p className="font-semibold text-gray-800">{hide ? "——" : fmtINR(esopVestedGrossINR)}</p>
+              </div>
+              <div>
+                <p className="text-red-400">Tax liability (~40%)</p>
+                <p className="font-semibold text-red-600">{hide ? "——" : `−${fmtINR(esopTaxLiability)}`}</p>
+              </div>
+              <div>
+                <p className="text-emerald-600">Net (in portfolio)</p>
+                <p className="font-semibold text-emerald-700">{hide ? "——" : fmtINR(esopVestedNetINR)}</p>
+              </div>
+              {esopUnvestedNetINR > 0 && (
+                <div>
+                  <p className="text-cyan-500">Unvested potential (net)</p>
+                  <p className="font-semibold text-cyan-700">{hide ? "——" : fmtINR(esopUnvestedNetINR)}</p>
+                </div>
+              )}
+            </div>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                <th className="px-5 py-3 text-left">Company</th>
+                <th className="px-5 py-3 text-right">Vested</th>
+                <th className="px-5 py-3 text-right">Unvested</th>
+                <th className="px-5 py-3 text-right">Strike</th>
+                <th className="px-5 py-3 text-right">Current</th>
+                <th className="px-5 py-3 text-right">Gross Gain</th>
+                <th className="px-5 py-3 text-right text-red-400">Tax ({`~`}40%)</th>
+                <th className="px-5 py-3 text-right text-emerald-600">Net Value</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {esopPositions.map((e, i) => {
+                const sym = e.currency === "INR" ? "₹" : "$";
+                return (
+                  <tr key={i} className="hover:bg-gray-50">
+                    <td className="px-5 py-3">
+                      <p className="font-medium text-gray-800">{e.company}</p>
+                      {e.grantDate && <p className="text-xs text-gray-400">Grant: {e.grantDate}</p>}
+                    </td>
+                    <td className="px-5 py-3 text-right text-gray-700">{e.vested.toLocaleString()}</td>
+                    <td className="px-5 py-3 text-right text-gray-400">{e.unvested > 0 ? e.unvested.toLocaleString() : "—"}</td>
+                    <td className="px-5 py-3 text-right text-gray-600">{hide ? "——" : `${sym}${e.strikePrice.toLocaleString("en-IN")}`}</td>
+                    <td className="px-5 py-3 text-right text-gray-800 font-medium">{hide ? "——" : `${sym}${e.currentPrice.toLocaleString("en-IN")}`}</td>
+                    <td className="px-5 py-3 text-right text-gray-800">{hide ? "——" : fmtINR(e.vestedGross)}</td>
+                    <td className="px-5 py-3 text-right text-red-500">{hide ? "——" : `−${fmtINR(e.taxLiability)}`}</td>
+                    <td className="px-5 py-3 text-right font-semibold text-emerald-700">{hide ? "——" : fmtINR(e.vestedNet)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Change Log */}
+      {(data.changeLog ?? []).length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">Portfolio Change Log</h2>
+          <div className="space-y-1.5 max-h-52 overflow-y-auto">
+            {[...(data.changeLog ?? [])].reverse().slice(0, 15).map((entry, i) => (
+              <div key={i} className="flex items-start gap-3 text-xs">
+                <span className="text-gray-400 shrink-0 font-mono">
+                  {new Date(entry.timestamp).toLocaleString("en-IN", { dateStyle: "short", timeStyle: "short" })}
+                </span>
+                <span className="text-gray-600">{entry.note}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Watchlist */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
